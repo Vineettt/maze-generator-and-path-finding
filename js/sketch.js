@@ -110,6 +110,7 @@ function updateCanvasData() {
 }
 
 function initMazeGeneration() {
+    updateStatus('Generating maze...');
     this.updateCanvasData();
     mazeGeneratorAndPathFindingObject.createCanvasFlag = true;
     mazeGeneratorAndPathFindingObject.createMaze = true;
@@ -131,6 +132,7 @@ function initMazeGeneration() {
 }
 
 function initPathFinding() {
+    updateStatus('Finding path...');
     path_finding = document.querySelector('input[name="path_finding"]:checked').value;
     mazeGeneratorAndPathFindingObject.startPathFinding = true;
     openSet = [];
@@ -208,6 +210,7 @@ function draw() {
         }
         if (mazeGeneratorAndPathFindingObject.mazeCompleted === true) {
             console.log("Maze completed!");
+            updateStatus('Maze generated successfully!');
             current.highlight(color(0, 0, 0, 0));
             mazeGeneratorAndPathFindingObject.createMaze = false;
             mazeGeneratorAndPathFindingObject.mazeCompleted = false;
@@ -393,6 +396,7 @@ function A_Star() {
         if (current === end) {
             this.CreatePath();
             noLoop();
+            updateStatus('Path found successfully!');
             console.log("DONE!");
         }
         removeFromArray(openSet, current);
@@ -423,6 +427,7 @@ function A_Star() {
         }
     } else {
         console.log('no solution');
+        updateStatus('No path found!');
         this.CreatePath();
         noLoop();
         return;

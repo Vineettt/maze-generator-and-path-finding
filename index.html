@@ -1,81 +1,304 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Maze and A*</title>
-    <meta name="description" content="">
+    <title>Maze Generator & Path Finding Visualizer</title>
+    <meta name="description" content="Interactive maze generator and pathfinding algorithm visualizer">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="">
     <style>
-        body{
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             display: flex;
-            gap: 10px;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            width: 320px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .control-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .radio-group {
+            margin-bottom: 10px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            margin-bottom: 0;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+        }
+
+        button.secondary:hover {
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+        }
+
+        .value-display {
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .status-bar {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .control-panel {
+                width: 100%;
+                max-height: none;
+            }
+
+            .canvas-container {
+                min-height: 400px;
+            }
         }
     </style>
 </head>
 
 <body>
-    <div>
-        <label for="endIndex">Cells</label>
-        <br>
-        <input type="range" min="5" max="100" step="5" value="20" class="cells" onchange="updateCanvasData()"
-            id="no_of_cells">
-        <br>
-        <label for="endIndex">Matrix</label>
-        <br>
-        <input type="range" min="100" max="1000" step="100" value="500" class="matrix" onchange="updateCanvasData()"
-            id="weight_height">
-        <br>
-        <label for="bias">Bias:</label>
-        <select name="bias" id="bias" onchange="updateCanvasData()">
-            <option value="nw">Northwest</option>
-            <option value="ne">Northeast</option>
-            <option value="sw">Southwest</option>
-            <option value="se">Southeast</option>
-        </select>
-        <br>
-        <input type="radio" id="rmg" name="maze_generator" value="recursive_maze_generator" checked>
-        <label for="rmg">Recursive Maze Generator</label><br>
-        <input type="radio" id="iter_imp" name="maze_generator" value="iterative_implementation">
-        <label for="iter_imp">Iterative implementation</label><br>
-        <input type="radio" id="binary_tree" name="maze_generator" value="binary_tree">
-        <label for="binary_tree">Binary Tree</label><br>
-        <button onclick="initMazeGeneration()" id="generateMaze">Generate Maze</button>
-        <br>
-        <input type="radio" id="a_star" name="path_finding" value="a_star" checked>
-        <label for="a_star">A*</label><br>
-        <input type="radio" id="sample_algorithm" name="path_finding" value="sample_algorithm">
-        <label for="sample_algorithm">Sample Algorithm</label><br>
-        <button onclick="initPathFinding()" id="generatePath">Generate Path</button>
-        <br>
-        <label for="startIndex">Start Position</label>
-        <br>
-
-        <input type="range" min="0" max="" step="1" value="0" class="slider" onchange="updateStartAndEndCordindates()"
-            id="startIndexI">
-        <br>
-
-        <input type="range" min="0" max="" step="1" value="0" class="slider" onchange="updateStartAndEndCordindates()"
-            id="startIndexJ">
-        <br>
-        <label for="endIndex">End Position</label>
-        <br>
-
-        <input type="range" min="0" max="" step="1" value="0" class="slider" onchange="updateStartAndEndCordindates()"
-            id="endIndexI">
-        <br>
-        <input type="range" min="0" max="" step="1" value="0" class="slider" onchange="updateStartAndEndCordindates()"
-            id="endIndexJ">
-        <br>
-        <button onclick="downloadCanvas()" id="downloadCanvas">Download Canvas</button>
-        <br>
-        <div id="mazePath"></div>
+    <div class="control-panel">
+        <h1>Maze Generator & Path Finding Visualizer</h1>
+        
+        <div class="control-section">
+            <div class="section-title">🎯 Maze Settings</div>
+            <label for="no_of_cells">Grid Size: <span id="cellValue">20</span> cells</label>
+            <input type="range" min="5" max="100" step="5" value="20" class="cells" 
+                   oninput="document.getElementById('cellValue').textContent = this.value" 
+                   onchange="updateCanvasData()" id="no_of_cells">
+            
+            <label for="weight_height">Canvas Size: <span id="canvasValue">500</span>px</label>
+            <input type="range" min="100" max="1000" step="100" value="500" class="matrix" 
+                   oninput="document.getElementById('canvasValue').textContent = this.value" 
+                   onchange="updateCanvasData()" id="weight_height">
+            
+            <label for="bias">Direction Bias:</label>
+            <select name="bias" id="bias" onchange="updateCanvasData()">
+                <option value="nw">Northwest</option>
+                <option value="ne">Northeast</option>
+                <option value="sw">Southwest</option>
+                <option value="se">Southeast</option>
+            </select>
+            
+            <div class="section-title" style="margin-top: 15px;">🔧 Algorithm</div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="rmg" name="maze_generator" value="recursive_maze_generator" checked>
+                    <label for="rmg">Recursive Backtracking</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="iter_imp" name="maze_generator" value="iterative_implementation">
+                    <label for="iter_imp">Iterative Implementation</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="binary_tree" name="maze_generator" value="binary_tree">
+                    <label for="binary_tree">Binary Tree</label>
+                </div>
+            </div>
+            <button onclick="initMazeGeneration()" id="generateMaze">🎲 Generate Maze</button>
+        </div>
+        
+        <div class="control-section">
+            <div class="section-title">🛤️ Path Finding</div>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="a_star" name="path_finding" value="a_star" checked>
+                    <label for="a_star">A* Algorithm</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="sample_algorithm" name="path_finding" value="sample_algorithm">
+                    <label for="sample_algorithm">Sample Algorithm</label>
+                </div>
+            </div>
+            <button onclick="initPathFinding()" id="generatePath" class="secondary">🔍 Find Path</button>
+        </div>
+        
+        <div class="control-section">
+            <div class="section-title">📍 Position Settings</div>
+            <label for="startIndex">Start Position: (<span id="startPos">0, 0</span>)</label>
+            <input type="range" min="0" max="" step="1" value="0" class="slider" 
+                   oninput="updatePositionDisplay('start')" 
+                   onchange="updateStartAndEndCordindates()" id="startIndexI">
+            <input type="range" min="0" max="" step="1" value="0" class="slider" 
+                   oninput="updatePositionDisplay('start')" 
+                   onchange="updateStartAndEndCordindates()" id="startIndexJ">
+            
+            <label for="endIndex">End Position: (<span id="endPos">19, 19</span>)</label>
+            <input type="range" min="0" max="" step="1" value="0" class="slider" 
+                   oninput="updatePositionDisplay('end')" 
+                   onchange="updateStartAndEndCordindates()" id="endIndexI">
+            <input type="range" min="0" max="" step="1" value="0" class="slider" 
+                   oninput="updatePositionDisplay('end')" 
+                   onchange="updateStartAndEndCordindates()" id="endIndexJ">
+        </div>
+        
+        <div class="control-section">
+            <button onclick="downloadCanvas()" id="downloadCanvas" class="secondary">💾 Download Canvas</button>
+            <div class="status-bar" id="statusBar">Ready to generate maze</div>
+        </div>
     </div>
+    
+    <div class="canvas-container" id="canvasContainer">
+        <!-- Canvas will be inserted here by p5.js -->
+    </div>
+    
     <script src="https://cdn.jsdelivr.net/npm/p5@1.5.0/lib/p5.js" async defer></script>
     <script src="./js/cell.js" async defer></script>
     <script src="./js/sketch.js" async defer></script>
+    <script>
+        // Additional UI functions
+        function updatePositionDisplay(type) {
+            if (type === 'start') {
+                const i = document.getElementById('startIndexI').value;
+                const j = document.getElementById('startIndexJ').value;
+                document.getElementById('startPos').textContent = `${i}, ${j}`;
+            } else if (type === 'end') {
+                const i = document.getElementById('endIndexI').value;
+                const j = document.getElementById('endIndexJ').value;
+                document.getElementById('endPos').textContent = `${i}, ${j}`;
+            }
+        }
+
+        function updateStatus(message) {
+            document.getElementById('statusBar').textContent = message;
+        }
+
+        // Initialize position displays
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePositionDisplay('start');
+            updatePositionDisplay('end');
+        });
+    </script>
 </body>
 
 </html>
